@@ -1,9 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { Monitor, Bug, GitPullRequest, AlertTriangle, RefreshCw, Zap, Power } from 'lucide-react'
+import Link from 'next/link'
+import { AlertTriangle, Bug, GitPullRequest, Monitor, Power, RefreshCw, Zap } from 'lucide-react'
 import type { Issue } from '@/lib/types'
-import { clsx } from 'clsx'
+import { EmptyState, PageHeader, Panel, PanelHeader, Pill, severityTone, statusTone } from '@/components/dashboard/ui'
 
 type Stats = {
   totalSessions: number
@@ -19,6 +20,7 @@ export function DashboardOverview({ stats, recentIssues, projectId }: { stats: S
   const [analyzing, setAnalyzing] = useState(false)
   const [agentRunning, setAgentRunning] = useState(false)
   const [syncResult, setSyncResult] = useState<string | null>(null)
+  const primaryIssue = recentIssues[0]
 
   async function handleSync() {
     setSyncing(true)
@@ -47,121 +49,192 @@ export function DashboardOverview({ stats, recentIssues, projectId }: { stats: S
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-          <p className="text-zinc-400 text-sm mt-1">AI is watching your product 24/7</p>
-        </div>
-        <div className="flex gap-3">
-          <button
-            onClick={async () => {
-              setAgentRunning(true)
-              setSyncResult(null)
-              const res = await fetch('/api/agent/start', { method: 'POST' })
-              const data = await res.json()
-              setSyncResult(data.message ?? 'Agent started')
-            }}
-            disabled={agentRunning}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white text-sm rounded-lg transition-colors"
-          >
-            <Power size={16} className={agentRunning ? 'animate-pulse' : ''} />
-            {agentRunning ? 'Agent Running' : 'Start Agent'}
-          </button>
-          <button
-            onClick={handleSync}
-            disabled={syncing}
-            className="flex items-center gap-2 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 text-white text-sm rounded-lg transition-colors"
-          >
-            <RefreshCw size={16} className={syncing ? 'animate-spin' : ''} />
-            Sync Sessions
-          </button>
-          <button
-            onClick={handleAnalyze}
-            disabled={analyzing}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-sm rounded-lg transition-colors"
-          >
-            <Zap size={16} className={analyzing ? 'animate-pulse' : ''} />
-            Analyze & Fix
-          </button>
-        </div>
-      </div>
+    <div className="pt-20 md:pt-0">
+      <PageHeader
+        eyebrow="ExterVision / Loop inbox"
+        title="Loop inbox"
+        description="Evidence ranked by user pain, confidence, fix readiness, and learned team policy."
+        action={
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={async () => {
+                setAgentRunning(true)
+                setSyncResult(null)
+                const res = await fetch('/api/agent/start', { method: 'POST' })
+                const data = await res.json()
+                setSyncResult(data.message ?? 'Agent started')
+              }}
+              disabled={agentRunning}
+              className="ev-focus inline-flex min-h-10 items-center gap-2 rounded bg-[var(--ev-acid)] px-4 text-sm font-semibold text-[#11130b] disabled:opacity-50"
+            >
+              <Power size={16} className={agentRunning ? 'animate-pulse' : ''} />
+              {agentRunning ? 'Watching' : 'Start watch'}
+            </button>
+            <button
+              onClick={handleSync}
+              disabled={syncing}
+              className="ev-focus inline-flex min-h-10 items-center gap-2 rounded border border-[var(--ev-border)] px-4 text-sm text-[var(--ev-text)] transition-colors hover:bg-white/[0.04] disabled:opacity-50"
+            >
+              <RefreshCw size={16} className={syncing ? 'animate-spin' : ''} />
+              Sync replays
+            </button>
+            <button
+              onClick={handleAnalyze}
+              disabled={analyzing}
+              className="ev-focus inline-flex min-h-10 items-center gap-2 rounded border border-[var(--ev-border)] px-4 text-sm text-[var(--ev-text)] transition-colors hover:bg-white/[0.04] disabled:opacity-50"
+            >
+              <Zap size={16} className={analyzing ? 'animate-pulse' : ''} />
+              Analyze loops
+            </button>
+          </div>
+        }
+      />
 
       {syncResult && (
-        <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 text-blue-400 text-sm mb-6">
+        <div className="mb-5 rounded border border-[rgba(215,255,95,0.22)] bg-[rgba(215,255,95,0.08)] px-3 py-2 font-data text-xs uppercase tracking-normal text-[var(--ev-acid)]">
           {syncResult}
         </div>
       )}
 
-      <div className="grid grid-cols-4 gap-4 mb-8">
-        <StatCard icon={Monitor} label="Sessions" value={stats.totalSessions} sub={`${stats.analyzedSessions} analyzed`} />
-        <StatCard icon={Bug} label="Issues Found" value={stats.totalIssues} sub={`${stats.openIssues} open`} />
-        <StatCard icon={AlertTriangle} label="Critical" value={stats.criticalIssues} sub="need attention" color="red" />
-        <StatCard icon={GitPullRequest} label="PRs Pushed" value={stats.prsCreated} sub="auto-generated" color="green" />
+      <div className="mb-5 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+        <Metric icon={Monitor} label="Observed" value={stats.totalSessions} detail={`${stats.analyzedSessions} analyzed`} />
+        <Metric icon={Bug} label="Loops" value={stats.totalIssues} detail={`${stats.openIssues} open`} />
+        <Metric icon={AlertTriangle} label="Critical" value={stats.criticalIssues} detail="needs owner" tone="danger" />
+        <Metric icon={GitPullRequest} label="PR ready" value={stats.prsCreated} detail="auto-generated" tone="success" />
       </div>
 
-      <div>
-        <h2 className="text-lg font-semibold text-white mb-4">Recent Issues</h2>
-        {recentIssues.length === 0 ? (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-8 text-center">
-            <p className="text-zinc-400">No issues detected yet. Sync sessions and run analysis to get started.</p>
+      {primaryIssue ? (
+        <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_340px]">
+          <div className="grid gap-3">
+            <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_340px]">
+              <Panel>
+                <PanelHeader label={`EV-${primaryIssue.id.slice(0, 4)} / ${primaryIssue.type.replace('_', ' ')}`} value={`${Math.round(primaryIssue.confidence * 100)}% confidence`} />
+                <div className="p-3">
+                  <div className="ev-grid-bg relative min-h-72 overflow-hidden rounded border border-[var(--ev-border)] bg-[linear-gradient(180deg,rgba(244,241,234,0.06),rgba(244,241,234,0.015))]">
+                    <div className="absolute left-4 top-4 rounded border border-[var(--ev-border)] bg-[var(--ev-surface)] px-3 py-2">
+                      <p className="font-data text-[10px] uppercase tracking-normal text-[var(--ev-muted)]">Replay evidence</p>
+                      <p className="mt-1 text-sm text-[var(--ev-text)]">{primaryIssue.affected_component || 'Product flow'}</p>
+                    </div>
+                    <div className="absolute bottom-8 right-8 rounded border border-[rgba(255,92,92,0.42)] bg-[rgba(255,92,92,0.1)] px-3 py-2 font-data text-[11px] text-[#ffd8d8]">
+                      suspected failure cluster
+                    </div>
+                    <div className="absolute bottom-24 right-20 h-20 w-20 rounded-full border border-[rgba(255,92,92,0.72)] shadow-[0_0_0_14px_rgba(255,92,92,0.08),0_0_0_30px_rgba(255,92,92,0.04)]" />
+                  </div>
+                  <div className="mt-2 grid gap-2 sm:grid-cols-5">
+                    {['Signal', 'Diagnose', 'Teach', 'PR', 'Watch'].map((step, index) => (
+                      <div key={step} className="rounded border border-[var(--ev-border)] bg-white/[0.02] p-2">
+                        <p className="font-data text-[10px] text-[var(--ev-muted)]">00:{String(index * 7 + 3).padStart(2, '0')}</p>
+                        <p className="mt-2 text-xs text-[var(--ev-text)]">{step}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </Panel>
+
+              <Panel className="grid">
+                <PanelHeader label="Generated fix" value={primaryIssue.pr_url ? 'PR open' : 'ready'} />
+                <div className="flex flex-col p-3">
+                  <div className="flex flex-wrap gap-2">
+                    <Pill tone={severityTone(primaryIssue.severity)}>{primaryIssue.severity}</Pill>
+                    <Pill tone={statusTone(primaryIssue.status)}>{primaryIssue.status}</Pill>
+                    <Pill tone="accent">{Math.round(primaryIssue.confidence * 100)}%</Pill>
+                  </div>
+                  <h2 className="mt-4 text-xl font-semibold leading-tight text-[var(--ev-text)]">{primaryIssue.title}</h2>
+                  <p className="mt-3 text-sm leading-6 text-[var(--ev-muted)]">{primaryIssue.description}</p>
+                  <pre className="mt-4 overflow-x-auto rounded border border-[rgba(111,227,161,0.16)] bg-[rgba(111,227,161,0.06)] p-3 font-data text-xs leading-6 text-[var(--ev-success)]">
+{primaryIssue.suggested_fix || '+ preserve state\n+ add regression coverage\n+ open scoped PR'}
+                  </pre>
+                  <div className="mt-auto pt-4">
+                    <Link
+                      href={`/dashboard/issues/${primaryIssue.id}`}
+                      className="ev-focus inline-flex min-h-10 w-full items-center justify-center rounded bg-[var(--ev-acid)] px-4 text-sm font-semibold text-[#11130b]"
+                    >
+                      Inspect loop
+                    </Link>
+                  </div>
+                </div>
+              </Panel>
+            </div>
+
+            <Panel>
+              <PanelHeader label="Recent loops" value={`${recentIssues.length} loaded`} />
+              <div className="divide-y divide-[var(--ev-border)]">
+                {recentIssues.slice(0, 8).map(issue => (
+                  <LoopRow key={issue.id} issue={issue} />
+                ))}
+              </div>
+            </Panel>
           </div>
-        ) : (
-          <div className="space-y-2">
-            {recentIssues.map(issue => (
-              <IssueRow key={issue.id} issue={issue} />
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
 
-function StatCard({ icon: Icon, label, value, sub, color }: { icon: typeof Monitor; label: string; value: number; sub: string; color?: string }) {
-  return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-      <div className="flex items-center gap-2 mb-2">
-        <Icon size={16} className={color === 'red' ? 'text-red-400' : color === 'green' ? 'text-green-400' : 'text-zinc-400'} />
-        <span className="text-sm text-zinc-400">{label}</span>
-      </div>
-      <p className="text-2xl font-bold text-white">{value}</p>
-      <p className="text-xs text-zinc-500 mt-1">{sub}</p>
-    </div>
-  )
-}
-
-function IssueRow({ issue }: { issue: Issue }) {
-  return (
-    <a
-      href={`/dashboard/issues/${issue.id}`}
-      className="flex items-center gap-4 bg-zinc-900 border border-zinc-800 rounded-lg p-4 hover:border-zinc-700 transition-colors"
-    >
-      <span className={clsx(
-        'px-2 py-0.5 rounded text-xs font-medium',
-        issue.severity === 'critical' && 'bg-red-500/10 text-red-400',
-        issue.severity === 'high' && 'bg-orange-500/10 text-orange-400',
-        issue.severity === 'medium' && 'bg-yellow-500/10 text-yellow-400',
-        issue.severity === 'low' && 'bg-zinc-700/50 text-zinc-400',
-      )}>
-        {issue.severity}
-      </span>
-      <span className="text-white flex-1 text-sm">{issue.title}</span>
-      <span className="text-xs text-zinc-500">{issue.type}</span>
-      {issue.pr_url && (
-        <span className="text-xs text-green-400 flex items-center gap-1">
-          <GitPullRequest size={12} /> PR
-        </span>
+          <MemoryLedger />
+        </div>
+      ) : (
+        <EmptyState
+          title="No loops detected yet"
+          description="Sync PostHog sessions and run analysis. ExterVision will turn replay evidence into diagnosis, feedback, PRs, and memory updates."
+        />
       )}
-      <span className={clsx(
-        'text-xs px-2 py-0.5 rounded',
-        issue.status === 'open' && 'bg-blue-500/10 text-blue-400',
-        issue.status === 'confirmed' && 'bg-green-500/10 text-green-400',
-        issue.status === 'rejected' && 'bg-zinc-700/50 text-zinc-400',
-        issue.status === 'fixed' && 'bg-purple-500/10 text-purple-400',
-      )}>
-        {issue.status}
-      </span>
-    </a>
+    </div>
+  )
+}
+
+function Metric({ icon: Icon, label, value, detail, tone = 'neutral' }: { icon: typeof Monitor; label: string; value: number; detail: string; tone?: 'neutral' | 'danger' | 'success' }) {
+  return (
+    <div className="ev-panel min-h-24 p-3">
+      <div className="flex items-center gap-2">
+        <Icon size={16} className={tone === 'danger' ? 'text-[var(--ev-danger)]' : tone === 'success' ? 'text-[var(--ev-success)]' : 'text-[var(--ev-muted)]'} />
+        <span className="font-data text-[11px] uppercase tracking-normal text-[var(--ev-muted)]">{label}</span>
+      </div>
+      <p className="font-display mt-4 text-4xl font-semibold leading-none tracking-normal text-[var(--ev-text)]">{value}</p>
+      <p className="mt-1 text-xs text-[var(--ev-faint)]">{detail}</p>
+    </div>
+  )
+}
+
+function LoopRow({ issue }: { issue: Issue }) {
+  return (
+    <Link
+      href={`/dashboard/issues/${issue.id}`}
+      className="ev-focus grid gap-3 px-3 py-3 transition-colors hover:bg-white/[0.03] md:grid-cols-[82px_minmax(0,1fr)_86px_84px_92px]"
+    >
+      <Pill tone={severityTone(issue.severity)}>{issue.severity}</Pill>
+      <div className="min-w-0">
+        <p className="truncate text-sm font-medium text-[var(--ev-text)]">{issue.title}</p>
+        <p className="mt-1 truncate text-xs text-[var(--ev-muted)]">{issue.description}</p>
+      </div>
+      <span className="font-data text-xs uppercase tracking-normal text-[var(--ev-muted)]">{issue.type.replace('_', ' ')}</span>
+      <span className="font-data text-xs uppercase tracking-normal text-[var(--ev-muted)]">{Math.round(issue.confidence * 100)}%</span>
+      <Pill tone={issue.pr_url ? 'success' : statusTone(issue.status)}>{issue.pr_url ? 'PR open' : issue.status}</Pill>
+    </Link>
+  )
+}
+
+function MemoryLedger() {
+  const entries = [
+    ['Rule updated', 'Disabled checkout buttons after failed network requests are now revenue-blocking, not UI polish.'],
+    ['Feedback applied', 'QA requires two-session repro before ExterVision opens PRs touching payments.'],
+    ['Regression watch', 'Promo retry, payment intent recovery, and abandon rate are watched after merge.'],
+    ['Trust control', 'Auth, billing, and deletion fixes require engineering approval before auto-merge.'],
+  ]
+
+  return (
+    <Panel>
+      <div className="p-4">
+        <h2 className="font-display text-4xl font-semibold uppercase leading-[0.9] tracking-normal text-[var(--ev-text)]">
+          Memory ledger
+        </h2>
+        <p className="mt-3 text-sm leading-6 text-[var(--ev-muted)]">
+          ExterVision should expose how PM, QA, and engineering feedback changes future classifications.
+        </p>
+      </div>
+      <div className="divide-y divide-[var(--ev-border)] border-t border-[var(--ev-border)]">
+        {entries.map(([label, text]) => (
+          <div key={label} className="p-4">
+            <p className="font-data text-[11px] uppercase tracking-normal text-[var(--ev-acid)]">{label}</p>
+            <p className="mt-2 text-sm leading-6 text-[var(--ev-muted)]">{text}</p>
+          </div>
+        ))}
+      </div>
+    </Panel>
   )
 }

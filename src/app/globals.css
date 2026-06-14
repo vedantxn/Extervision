@@ -1,21 +1,75 @@
 @import "tailwindcss";
 
 :root {
-  --background: #09090b;
-  --foreground: #fafafa;
+  --background: #0b0d0b;
+  --foreground: #f4f1ea;
+  --ev-bg: #0b0d0b;
+  --ev-bg-soft: #10100e;
+  --ev-surface: #141511;
+  --ev-surface-raised: #191812;
+  --ev-border: rgba(244, 241, 234, 0.12);
+  --ev-border-strong: rgba(244, 241, 234, 0.18);
+  --ev-text: #f4f1ea;
+  --ev-muted: #9c9588;
+  --ev-faint: #6f695f;
+  --ev-acid: #d7ff5f;
+  --ev-danger: #ff5c5c;
+  --ev-success: #6fe3a1;
+  --ev-warning: #f2b84b;
+  --ev-blue: #72a7ff;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-plex-sans);
+  --font-mono: var(--font-jetbrains-mono);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), system-ui, sans-serif;
+  font-family: var(--font-plex-sans), sans-serif;
+}
+
+.font-display {
+  font-family: var(--font-archivo), var(--font-plex-sans), sans-serif;
+}
+
+.font-data {
+  font-family: var(--font-jetbrains-mono), monospace;
+}
+
+.font-editorial {
+  font-family: var(--font-source-serif), serif;
+}
+
+.ev-panel {
+  border: 1px solid var(--ev-border);
+  background: var(--ev-surface);
+  border-radius: 8px;
+}
+
+.ev-panel-raised {
+  border: 1px solid var(--ev-border);
+  background: var(--ev-surface-raised);
+  border-radius: 8px;
+}
+
+.ev-grid-bg {
+  background-image:
+    linear-gradient(90deg, rgba(215, 255, 95, 0.035) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(244, 241, 234, 0.035) 1px, transparent 1px);
+  background-size: 52px 52px;
+}
+
+.ev-focus {
+  outline: none;
+}
+
+.ev-focus:focus-visible {
+  outline: 2px solid var(--ev-acid);
+  outline-offset: 2px;
 }
 
 @keyframes fade-in {

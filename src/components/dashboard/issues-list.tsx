@@ -1,71 +1,61 @@
 'use client'
 
-import { Bug, GitPullRequest, ExternalLink } from 'lucide-react'
+import { GitPullRequest } from 'lucide-react'
 import type { Issue } from '@/lib/types'
-import { clsx } from 'clsx'
 import Link from 'next/link'
+import { EmptyState, PageHeader, Panel, PanelHeader, Pill, severityTone, statusTone } from '@/components/dashboard/ui'
 
 export function IssuesList({ issues }: { issues: Issue[] }) {
   return (
-    <div>
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Issues</h1>
-          <p className="text-zinc-400 text-sm mt-1">{issues.length} issues detected by AI</p>
-        </div>
-      </div>
+    <div className="pt-20 md:pt-0">
+      <PageHeader
+        eyebrow="ExterVision / Loops"
+        title="Loop archive"
+        description="Replay-backed product quality loops with severity, confidence, PR readiness, and learned team policy."
+      />
 
       {issues.length === 0 ? (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-8 text-center">
-          <Bug size={32} className="text-zinc-600 mx-auto mb-3" />
-          <p className="text-zinc-400">No issues found yet. Analyze some sessions first.</p>
-        </div>
+        <EmptyState
+          title="No loops yet"
+          description="Analyze replays to create the first closed loop from signal to diagnosis, feedback, PR, and regression watch."
+        />
       ) : (
-        <div className="space-y-2">
-          {issues.map(issue => (
-            <Link
-              key={issue.id}
-              href={`/dashboard/issues/${issue.id}`}
-              className="flex items-center gap-4 bg-zinc-900 border border-zinc-800 rounded-lg p-4 hover:border-zinc-700 transition-colors"
-            >
-              <span className={clsx(
-                'px-2 py-0.5 rounded text-xs font-medium shrink-0',
-                issue.severity === 'critical' && 'bg-red-500/10 text-red-400',
-                issue.severity === 'high' && 'bg-orange-500/10 text-orange-400',
-                issue.severity === 'medium' && 'bg-yellow-500/10 text-yellow-400',
-                issue.severity === 'low' && 'bg-zinc-700/50 text-zinc-400',
-              )}>
-                {issue.severity}
-              </span>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm text-white truncate">{issue.title}</p>
-                <p className="text-xs text-zinc-500 mt-0.5 truncate">{issue.description}</p>
-              </div>
-              <span className="text-xs text-zinc-500 shrink-0">{issue.type}</span>
-              <span className="text-xs text-zinc-500 shrink-0">{Math.round(issue.confidence * 100)}%</span>
-              {issue.pr_url && (
-                <a
-                  href={issue.pr_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={e => e.stopPropagation()}
-                  className="text-green-400 hover:text-green-300 shrink-0"
-                >
-                  <GitPullRequest size={16} />
-                </a>
-              )}
-              <span className={clsx(
-                'text-xs px-2 py-0.5 rounded shrink-0',
-                issue.status === 'open' && 'bg-blue-500/10 text-blue-400',
-                issue.status === 'confirmed' && 'bg-green-500/10 text-green-400',
-                issue.status === 'rejected' && 'bg-zinc-700/50 text-zinc-400',
-                issue.status === 'fixed' && 'bg-purple-500/10 text-purple-400',
-              )}>
-                {issue.status}
-              </span>
-            </Link>
-          ))}
-        </div>
+        <Panel>
+          <PanelHeader label="Loop inbox" value={`${issues.length} detected`} />
+          <div className="hidden grid-cols-[84px_minmax(0,1fr)_110px_86px_92px_92px] gap-3 border-b border-[var(--ev-border)] px-3 py-2 font-data text-[10px] uppercase tracking-normal text-[var(--ev-faint)] md:grid">
+            <span>Severity</span>
+            <span>Detected issue</span>
+            <span>Type</span>
+            <span>Confidence</span>
+            <span>Status</span>
+            <span>PR</span>
+          </div>
+          <div className="divide-y divide-[var(--ev-border)]">
+            {issues.map(issue => (
+              <Link
+                key={issue.id}
+                href={`/dashboard/issues/${issue.id}`}
+                className="ev-focus grid gap-3 px-3 py-3 transition-colors hover:bg-white/[0.03] md:grid-cols-[84px_minmax(0,1fr)_110px_86px_92px_92px] md:items-center"
+              >
+                <Pill tone={severityTone(issue.severity)}>{issue.severity}</Pill>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-[var(--ev-text)]">{issue.title}</p>
+                  <p className="mt-1 truncate text-xs text-[var(--ev-muted)]">{issue.description}</p>
+                </div>
+                <span className="font-data text-xs uppercase tracking-normal text-[var(--ev-muted)]">{issue.type.replace('_', ' ')}</span>
+                <span className="font-data text-xs uppercase tracking-normal text-[var(--ev-muted)]">{Math.round(issue.confidence * 100)}%</span>
+                <Pill tone={statusTone(issue.status)}>{issue.status}</Pill>
+                {issue.pr_url ? (
+                  <span className="inline-flex items-center gap-1 font-data text-xs uppercase tracking-normal text-[var(--ev-success)]">
+                    <GitPullRequest size={13} /> Open
+                  </span>
+                ) : (
+                  <span className="font-data text-xs uppercase tracking-normal text-[var(--ev-faint)]">Queued</span>
+                )}
+              </Link>
+            ))}
+          </div>
+        </Panel>
       )}
     </div>
   )
