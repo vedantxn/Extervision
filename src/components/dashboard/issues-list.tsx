@@ -7,7 +7,7 @@ import { EmptyState, PageHeader, Panel, PanelHeader, Pill, severityTone, statusT
 
 export function IssuesList({ issues }: { issues: Issue[] }) {
   return (
-    <div className="pt-20 md:pt-0">
+    <div className="pt-20 lg:pt-0">
       <PageHeader
         eyebrow="ExterVision / Loops"
         title="Loop archive"

@@ -16,7 +16,7 @@ export function SessionsList({ sessions }: { sessions: Session[]; projectId: str
   }
 
   return (
-    <div className="pt-20 md:pt-0">
+    <div className="pt-20 lg:pt-0">
       <PageHeader
         eyebrow="ExterVision / Replays"
         title="Replay evidence"

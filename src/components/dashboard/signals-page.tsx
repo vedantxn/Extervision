@@ -34,7 +34,7 @@ export function SignalsPage({ signals: initialSignals, projectId }: { signals: S
   }
 
   return (
-    <div className="pt-20 md:pt-0">
+    <div className="pt-20 lg:pt-0">
       <PageHeader
         eyebrow="ExterVision / Learnings"
         title="Learning rules"

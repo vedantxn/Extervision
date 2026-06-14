@@ -51,7 +51,7 @@ export function SettingsForm({ userId, project }: { userId: string; project: Exi
   }
 
   return (
-    <div className="pt-20 md:pt-0">
+    <div className="pt-20 lg:pt-0">
       <PageHeader
         eyebrow="ExterVision / Settings"
         title="Source wiring"

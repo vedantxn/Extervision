@@ -30,7 +30,7 @@ export function IssueDetail({ issue }: { issue: Issue & { issue_feedback: { verd
   }
 
   return (
-    <div className="pt-20 md:pt-0">
+    <div className="pt-20 lg:pt-0">
       <Link href="/dashboard/issues" className="ev-focus mb-5 inline-flex items-center gap-2 rounded text-sm text-[var(--ev-muted)] transition-colors hover:text-[var(--ev-text)]">
         <ArrowLeft size={16} />
         Back to loops

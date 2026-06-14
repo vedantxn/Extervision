@@ -59,7 +59,7 @@ export function DashboardOverview({
   }
 
   return (
-    <div className="pt-20 md:pt-0">
+    <div className="pt-20 lg:pt-0">
       <PageHeader
         eyebrow="ExterVision / Loop inbox"
         title="Loop inbox"
