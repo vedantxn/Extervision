@@ -25,8 +25,8 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="fixed inset-x-0 top-0 z-40 flex h-auto border-b border-[var(--ev-border)] bg-[rgba(11,13,11,0.94)] backdrop-blur-xl lg:inset-y-0 lg:left-0 lg:h-screen lg:w-64 lg:flex-col lg:border-b-0 lg:border-r">
-      <div className="flex min-w-40 items-center gap-3 border-r border-[var(--ev-border)] px-4 py-3 lg:block lg:border-r-0 lg:border-b lg:p-5">
+    <aside className="fixed inset-x-0 top-0 z-40 flex h-auto border-b border-white/[0.05] bg-[rgba(11,13,11,0.86)] backdrop-blur-xl lg:inset-y-0 lg:left-0 lg:h-screen lg:w-64 lg:flex-col lg:border-b-0 lg:border-r">
+      <div className="flex min-w-40 items-center gap-3 border-r border-white/[0.05] px-4 py-3 lg:block lg:border-r-0 lg:border-b lg:p-5">
         <h1 className="font-display text-2xl font-semibold uppercase leading-[0.85] tracking-normal text-[var(--ev-text)] lg:text-3xl">
           Exter<br className="hidden lg:block" />Vision
         </h1>
@@ -43,7 +43,7 @@ export function Sidebar() {
               className={clsx(
                 'ev-focus flex min-w-max items-center gap-2 rounded-full px-3 py-2 text-sm transition-colors lg:min-w-0 lg:gap-3 lg:rounded-2xl',
                 isActive
-                  ? 'bg-[rgba(215,255,95,0.1)] text-[var(--ev-acid)]'
+                  ? 'bg-[linear-gradient(135deg,rgba(215,255,95,0.16),rgba(111,232,255,0.08))] text-[var(--ev-acid)] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'
                   : 'text-[var(--ev-muted)] hover:bg-white/[0.04] hover:text-[var(--ev-text)]'
               )}
             >

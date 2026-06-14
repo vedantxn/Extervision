@@ -195,14 +195,65 @@ export function DashboardOverview({
           <MemoryLedger />
         </div>
       ) : (
-        <EmptyState
-          title={setupMode ? 'Connect sources to start the loop' : 'No loops detected yet'}
-          description={setupMode
-            ? 'Wire PostHog for replay evidence, GitHub for PRs, and OpenAI for diagnosis before ExterVision starts watching.'
-            : 'Sync PostHog sessions and run analysis. ExterVision will turn replay evidence into diagnosis, feedback, PRs, and memory updates.'}
-        />
+        setupMode ? (
+          <SetupGuide />
+        ) : (
+          <EmptyState
+            title="No loops detected yet"
+            description="Sync PostHog sessions and run analysis. ExterVision will turn replay evidence into diagnosis, feedback, PRs, and memory updates."
+          />
+        )
       )}
     </div>
+  )
+}
+
+function SetupGuide() {
+  const steps = [
+    ['PostHog', 'Replay evidence', 'Session recordings, rage clicks, dead clicks, console errors, and user paths.'],
+    ['OpenAI', 'Diagnosis', 'The reasoning layer that turns replay evidence into root cause and fix plans.'],
+    ['GitHub', 'Pull requests', 'Repository access for scoped changes, review routing, and regression follow-up.'],
+  ]
+
+  return (
+    <section className="ev-liquid overflow-hidden rounded-[34px] p-5 ring-1 ring-white/[0.06] md:p-7">
+      <div className="grid gap-8 xl:grid-cols-[minmax(0,0.9fr)_minmax(420px,1.1fr)] xl:items-center">
+        <div>
+          <p className="font-data text-[11px] uppercase tracking-normal text-[var(--ev-acid)]">No project connected yet</p>
+          <h2 className="font-display mt-3 max-w-xl text-5xl font-semibold uppercase leading-[0.88] tracking-normal text-[var(--ev-text)] md:text-7xl">
+            Wire the loop once.
+          </h2>
+          <p className="mt-5 max-w-xl text-base leading-7 text-[var(--ev-muted)]">
+            ExterVision needs real sources before the dashboard has real loops. Connect replay evidence, model diagnosis, and code access. Then this inbox fills with actual product failures and PRs.
+          </p>
+          <Link
+            href="/dashboard/settings"
+            className="ev-focus mt-7 inline-flex min-h-12 items-center rounded-full bg-[var(--ev-acid)] px-6 text-sm font-semibold text-[#11130b]"
+          >
+            Connect sources
+          </Link>
+        </div>
+
+        <div className="relative">
+          <div className="absolute left-8 right-8 top-1/2 hidden h-px bg-gradient-to-r from-[var(--ev-acid)] via-[var(--ev-cyan)] to-[var(--ev-success)] opacity-60 md:block" />
+          <div className="relative grid gap-3 md:grid-cols-3">
+            {steps.map(([name, label, description], index) => (
+              <div
+                key={name}
+                className="rounded-[26px] bg-black/20 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur"
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[rgba(215,255,95,0.13)] font-data text-xs text-[var(--ev-acid)] ring-1 ring-[rgba(215,255,95,0.24)]">
+                  0{index + 1}
+                </div>
+                <p className="mt-5 text-lg font-semibold text-[var(--ev-text)]">{name}</p>
+                <p className="font-data mt-1 text-[11px] uppercase tracking-normal text-[var(--ev-acid)]">{label}</p>
+                <p className="mt-4 text-sm leading-6 text-[var(--ev-muted)]">{description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
   )
 }
 
