@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { AlertTriangle, Bug, GitPullRequest, Monitor, Power, RefreshCw, Zap } from 'lucide-react'
+import { AlertTriangle, Brain, Bug, CheckCircle2, GitPullRequest, Monitor, Power, RefreshCw, RadioTower, Zap } from 'lucide-react'
 import type { Issue } from '@/lib/types'
 import { EmptyState, PageHeader, Panel, PanelHeader, Pill, severityTone, statusTone } from '@/components/dashboard/ui'
 
@@ -72,7 +72,7 @@ export function DashboardOverview({
               <Pill tone="warning">Setup needed</Pill>
               <Link
                 href="/dashboard/settings"
-                className="ev-focus inline-flex min-h-10 items-center rounded-full bg-[var(--ev-acid)] px-5 text-sm font-semibold text-[#11130b]"
+                className="ev-focus inline-flex min-h-10 items-center rounded-lg bg-[var(--ev-acid)] px-4 text-sm font-semibold text-[#11130b]"
               >
                 Connect sources
               </Link>
@@ -210,50 +210,72 @@ export function DashboardOverview({
 
 function SetupGuide() {
   const steps = [
-    ['PostHog', 'Replay evidence', 'Session recordings, rage clicks, dead clicks, console errors, and user paths.'],
-    ['OpenAI', 'Diagnosis', 'The reasoning layer that turns replay evidence into root cause and fix plans.'],
-    ['GitHub', 'Pull requests', 'Repository access for scoped changes, review routing, and regression follow-up.'],
-  ]
+    {
+      name: 'PostHog',
+      label: 'Replay evidence',
+      description: 'Import session recordings, click signals, console errors, and user paths.',
+      icon: RadioTower,
+    },
+    {
+      name: 'OpenAI',
+      label: 'Diagnosis',
+      description: 'Analyze real replay evidence into root cause, priority, and fix plans.',
+      icon: Brain,
+    },
+    {
+      name: 'GitHub',
+      label: 'Pull requests',
+      description: 'Create scoped PRs, route reviews, and track regression follow-up.',
+      icon: GitPullRequest,
+    },
+  ] as const
 
   return (
-    <section className="ev-liquid overflow-hidden rounded-[34px] p-5 ring-1 ring-white/[0.06] md:p-7">
-      <div className="grid gap-8 xl:grid-cols-[minmax(0,0.9fr)_minmax(420px,1.1fr)] xl:items-center">
-        <div>
-          <p className="font-data text-[11px] uppercase tracking-normal text-[var(--ev-acid)]">No project connected yet</p>
-          <h2 className="font-display mt-3 max-w-xl text-5xl font-semibold uppercase leading-[0.88] tracking-normal text-[var(--ev-text)] md:text-7xl">
-            Wire the loop once.
-          </h2>
-          <p className="mt-5 max-w-xl text-base leading-7 text-[var(--ev-muted)]">
-            ExterVision needs real sources before the dashboard has real loops. Connect replay evidence, model diagnosis, and code access. Then this inbox fills with actual product failures and PRs.
+    <Panel>
+      <div className="grid gap-0 lg:grid-cols-[minmax(0,0.9fr)_minmax(420px,1.1fr)]">
+        <div className="border-b border-[var(--ev-border)] p-5 lg:border-b-0 lg:border-r lg:p-6">
+          <p className="font-data text-[11px] uppercase tracking-normal text-[var(--ev-muted)]">No project connected</p>
+          <h2 className="mt-3 text-2xl font-semibold tracking-normal text-[var(--ev-text)]">Connect real sources to start.</h2>
+          <p className="mt-3 max-w-xl text-sm leading-6 text-[var(--ev-muted)]">
+            ExterVision only shows loops after it can read actual replay evidence, run diagnosis, and open code changes in your repository.
           </p>
-          <Link
-            href="/dashboard/settings"
-            className="ev-focus mt-7 inline-flex min-h-12 items-center rounded-full bg-[var(--ev-acid)] px-6 text-sm font-semibold text-[#11130b]"
-          >
-            Connect sources
-          </Link>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link
+              href="/dashboard/settings"
+              className="ev-focus inline-flex min-h-10 items-center rounded-lg bg-[var(--ev-acid)] px-4 text-sm font-semibold text-[#11130b]"
+            >
+              Connect sources
+            </Link>
+            <span className="inline-flex min-h-10 items-center rounded-lg border border-[var(--ev-border)] px-3 font-data text-[11px] uppercase tracking-normal text-[var(--ev-muted)]">
+              0 live loops
+            </span>
+          </div>
         </div>
 
-        <div className="relative">
-          <div className="absolute left-8 right-8 top-1/2 hidden h-px bg-gradient-to-r from-[var(--ev-acid)] via-[var(--ev-cyan)] to-[var(--ev-success)] opacity-60 md:block" />
-          <div className="relative grid gap-3 md:grid-cols-3">
-            {steps.map(([name, label, description], index) => (
-              <div
-                key={name}
-                className="rounded-[26px] bg-black/20 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur"
-              >
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[rgba(215,255,95,0.13)] font-data text-xs text-[var(--ev-acid)] ring-1 ring-[rgba(215,255,95,0.24)]">
-                  0{index + 1}
+        <div className="p-3">
+          <div className="divide-y divide-[var(--ev-border)] overflow-hidden rounded-xl border border-[var(--ev-border)] bg-black/10">
+            {steps.map(({ name, label, description, icon: Icon }) => (
+              <div key={name} className="grid gap-4 p-4 sm:grid-cols-[36px_minmax(0,1fr)_auto] sm:items-start">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/[0.035] text-[var(--ev-acid)] ring-1 ring-white/[0.06]">
+                  <Icon size={17} />
                 </div>
-                <p className="mt-5 text-lg font-semibold text-[var(--ev-text)]">{name}</p>
-                <p className="font-data mt-1 text-[11px] uppercase tracking-normal text-[var(--ev-acid)]">{label}</p>
-                <p className="mt-4 text-sm leading-6 text-[var(--ev-muted)]">{description}</p>
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-sm font-semibold text-[var(--ev-text)]">{name}</p>
+                    <span className="font-data text-[10px] uppercase tracking-normal text-[var(--ev-faint)]">{label}</span>
+                  </div>
+                  <p className="mt-1 text-sm leading-6 text-[var(--ev-muted)]">{description}</p>
+                </div>
+                <div className="flex items-center gap-2 font-data text-[11px] uppercase tracking-normal text-[var(--ev-faint)]">
+                  <CheckCircle2 size={15} />
+                  Needed
+                </div>
               </div>
             ))}
           </div>
         </div>
       </div>
-    </section>
+    </Panel>
   )
 }
 
