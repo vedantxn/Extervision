@@ -8,16 +8,15 @@ export async function POST() {
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
-  // Start the agent loop
   waitUntil(
-    fetch(`${baseUrl}/api/agent/scheduler`, {
+    fetch(`${baseUrl}/api/agent`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${process.env.CRON_SECRET}`,
-      },
+      headers: { Authorization: `Bearer ${process.env.CRON_SECRET}` },
     })
   )
 
-  return Response.json({ status: 'Agent started', message: 'The agent is now running continuously.' })
+  return Response.json({
+    status: 'started',
+    message: 'Agent is now running. It will continuously sync, analyze, and fix bugs.',
+  })
 }

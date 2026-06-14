@@ -1,16 +1,13 @@
 {
   "crons": [
     {
-      "path": "/api/agent/scheduler",
+      "path": "/api/agent",
       "schedule": "*/5 * * * *"
     }
   ],
   "functions": {
     "src/app/api/agent/route.ts": {
       "maxDuration": 300
-    },
-    "src/app/api/agent/scheduler/route.ts": {
-      "maxDuration": 60
     }
   }
 }

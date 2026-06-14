@@ -1,3 +1,4 @@
+import { waitUntil } from '@vercel/functions'
 import { createServiceSupabase } from '@/lib/supabase/server'
 import { PostHogClient } from '@/lib/posthog'
 import { SessionAnalyzer } from '@/lib/analyzer'
@@ -14,16 +15,16 @@ export async function POST(request: Request) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { projectId } = await request.json().catch(() => ({ projectId: null }))
-
   const supabase = createServiceSupabase()
 
-  const query = supabase.from('projects').select('*').eq('sync_enabled', true)
-  if (projectId) query.eq('id', projectId)
+  const { data: projects } = await supabase
+    .from('projects')
+    .select('*')
+    .eq('sync_enabled', true)
 
-  const { data: projects } = await query
   if (!projects || projects.length === 0) {
-    return Response.json({ message: 'No active projects' })
+    scheduleNext()
+    return Response.json({ message: 'No active projects', next: '5m' })
   }
 
   const results = []
@@ -33,14 +34,16 @@ export async function POST(request: Request) {
       const posthogKey = decrypt(project.posthog_api_key)
       const openaiKey = decrypt(project.openai_api_key)
 
-      // STEP 1: Sync sessions from PostHog
+      // Sync
       const client = new PostHogClient(posthogKey, project.posthog_project_id)
       const { data: existing } = await supabase
         .from('sessions')
         .select('posthog_recording_id')
         .eq('project_id', project.id)
 
-      const existingIds = new Set<string>((existing ?? []).map((s: { posthog_recording_id: string }) => s.posthog_recording_id))
+      const existingIds = new Set<string>(
+        (existing ?? []).map((s: { posthog_recording_id: string }) => s.posthog_recording_id)
+      )
       const newSessions = await client.syncRecordings(existingIds)
 
       if (newSessions.length > 0) {
@@ -54,7 +57,7 @@ export async function POST(request: Request) {
         )
       }
 
-      // STEP 2: Analyze pending sessions
+      // Analyze
       const { data: pending } = await supabase
         .from('sessions')
         .select('*')
@@ -97,7 +100,7 @@ export async function POST(request: Request) {
           const { data: inserted } = await supabase.from('issues').insert(issues).select()
           totalIssues += issues.length
 
-          // STEP 3: Auto-fix high-confidence issues
+          // Auto-fix
           if (project.github_token && project.github_repo && inserted) {
             const githubToken = decrypt(project.github_token)
             const fixer = new CodeFixer(openaiKey, githubToken, project.github_repo)
@@ -125,5 +128,40 @@ export async function POST(request: Request) {
     }
   }
 
-  return Response.json({ results, timestamp: new Date().toISOString() })
+  // Schedule next run — keeps the agent alive
+  scheduleNext()
+
+  return Response.json({ results, next: '5m' })
+}
+
+// Vercel Cron hits this as a failsafe restart
+export async function GET(request: Request) {
+  const authHeader = request.headers.get('authorization')
+  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  // Trigger agent via POST
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  waitUntil(
+    fetch(`${baseUrl}/api/agent`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${process.env.CRON_SECRET}` },
+    })
+  )
+
+  return Response.json({ status: 'triggered' })
+}
+
+function scheduleNext() {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  waitUntil(
+    (async () => {
+      await new Promise(resolve => setTimeout(resolve, 5 * 60 * 1000))
+      await fetch(`${baseUrl}/api/agent`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${process.env.CRON_SECRET}` },
+      }).catch(() => {})
+    })()
+  )
 }
