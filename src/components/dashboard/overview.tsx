@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Monitor, Bug, GitPullRequest, AlertTriangle, RefreshCw, Zap } from 'lucide-react'
+import { Monitor, Bug, GitPullRequest, AlertTriangle, RefreshCw, Zap, Power } from 'lucide-react'
 import type { Issue } from '@/lib/types'
 import { clsx } from 'clsx'
 
@@ -17,6 +17,7 @@ type Stats = {
 export function DashboardOverview({ stats, recentIssues, projectId }: { stats: Stats; recentIssues: Issue[]; projectId: string }) {
   const [syncing, setSyncing] = useState(false)
   const [analyzing, setAnalyzing] = useState(false)
+  const [agentRunning, setAgentRunning] = useState(false)
   const [syncResult, setSyncResult] = useState<string | null>(null)
 
   async function handleSync() {
@@ -53,6 +54,20 @@ export function DashboardOverview({ stats, recentIssues, projectId }: { stats: S
           <p className="text-zinc-400 text-sm mt-1">AI is watching your product 24/7</p>
         </div>
         <div className="flex gap-3">
+          <button
+            onClick={async () => {
+              setAgentRunning(true)
+              setSyncResult(null)
+              const res = await fetch('/api/agent/start', { method: 'POST' })
+              const data = await res.json()
+              setSyncResult(data.message ?? 'Agent started')
+            }}
+            disabled={agentRunning}
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white text-sm rounded-lg transition-colors"
+          >
+            <Power size={16} className={agentRunning ? 'animate-pulse' : ''} />
+            {agentRunning ? 'Agent Running' : 'Start Agent'}
+          </button>
           <button
             onClick={handleSync}
             disabled={syncing}

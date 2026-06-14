@@ -1,8 +1,16 @@
 {
   "crons": [
     {
-      "path": "/api/cron/tick",
+      "path": "/api/agent/scheduler",
       "schedule": "*/5 * * * *"
     }
-  ]
+  ],
+  "functions": {
+    "src/app/api/agent/route.ts": {
+      "maxDuration": 300
+    },
+    "src/app/api/agent/scheduler/route.ts": {
+      "maxDuration": 60
+    }
+  }
 }
